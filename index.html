@@ -1,1 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Screen Privacy Lock</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #0f172a;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #38bdf8;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #0284c7;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #0369a1;
+    }
+
+    /* Lock Overlay */
+    #lock-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000000;
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #error-msg {
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main Setup Card -->
+  <div class="card" id="setup-card">
+    <h2>Set Lock Password</h2>
+    <input type="password" id="set-password" placeholder="Enter custom password" />
+    <button onclick="lockScreen()">Lock Screen</button>
+  </div>
+
+  <!-- Fullscreen Overlay -->
+  <div id="lock-overlay">
+    <div class="card">
+      <h2>Enter Password</h2>
+      <input type="password" id="unlock-password" placeholder="Password" />
+      <button onclick="unlockScreen()">Unlock</button>
+      <div id="error-msg">Incorrect password</div>
+    </div>
+  </div>
+
+  <script>
+    let activePassword = "";
+
+    function lockScreen() {
+      const passInput = document.getElementById("set-password");
+      if (!passInput.value.trim()) {
+        alert("Please enter a password before locking.");
+        return;
+      }
+
+      activePassword = passInput.value;
+      passInput.value = "";
+
+      const overlay = document.getElementById("lock-overlay");
+      overlay.style.display = "flex";
+
+      // Request native browser fullscreen
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+
+      document.getElementById("unlock-password").focus();
+    }
+
+    function unlockScreen() {
+      const enteredPass = document.getElementById("unlock-password").value;
+      const errorMsg = document.getElementById("error-msg");
+
+      if (enteredPass === activePassword) {
+        document.getElementById("lock-overlay").style.display = "none";
+        document.getElementById("unlock-password").value = "";
+        errorMsg.style.display = "none";
+
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } else {
+        errorMsg.style.display = "block";
+        document.getElementById("unlock-password").value = "";
+      }
+    }
+
+    // Allow pressing "Enter" key to submit
+    document.getElementById("unlock-password").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") unlockScreen();
+    });
+
+    document.getElementById("set-password").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") lockScreen();
+    });
+  </script>
+</body>
+</html>
